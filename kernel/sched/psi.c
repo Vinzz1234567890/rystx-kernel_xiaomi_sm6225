@@ -576,12 +576,6 @@ static u64 update_triggers(struct psi_group *group, u64 now)
 		/* Calculate growth since last update */
 		growth = window_update(&t->win, now, total[t->state]);
 
-#ifdef CONFIG_TRACEPOINTS
-#ifdef CONFIG_PSI_FTRACE
-		trace_psi_update_trigger_growth(t, now, growth);
-#endif /* CONFIG_PSI_FTRACE */
-#endif /* CONFIG_TRACEPOINTS */
-
 		if (growth < t->threshold)
 			continue;
 
@@ -591,7 +585,7 @@ static u64 update_triggers(struct psi_group *group, u64 now)
 
 #ifdef CONFIG_TRACEPOINTS
 #ifdef CONFIG_PSI_FTRACE
-		trace_psi_event(t, growth);
+		trace_psi_event(t, growth, now);
 #endif /* CONFIG_PSI_FTRACE */
 #endif /* CONFIG_TRACEPOINTS */
 

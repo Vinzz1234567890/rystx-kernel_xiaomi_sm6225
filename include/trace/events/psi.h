@@ -22,7 +22,7 @@
 	{ PSI_CPU_SOME, "cpu_some" },	\
 	{ PSI_NONIDLE, "non_idle" })
 
-TRACE_EVENT(psi_meminfo,
+TRACE_EVENT(psi_window_vmstat,
 
 	TP_PROTO(u64 mem_some, u64 mem_full, const char *zone_name, u64 high,
 		u64 free, u64 cma, u64 file),
@@ -57,9 +57,9 @@ TRACE_EVENT(psi_meminfo,
 
 TRACE_EVENT(psi_event,
 
-	TP_PROTO(struct psi_trigger *t, u64 growth),
+	TP_PROTO(struct psi_trigger *t, u64 growth, u64 now),
 
-	TP_ARGS(t, growth),
+	TP_ARGS(t, growth, now),
 
 	TP_STRUCT__entry(
 		__field(enum psi_states, state)
