@@ -12,6 +12,26 @@
 
 #define CPU_ISOLATE_LEVEL 1
 
+/*
+ * The scheduler in this tree has no CPU isolation support, so requests
+ * are tracked in software only. Other thermal mitigations are unaffected.
+ */
+static int sched_isolate_cpu(int cpu)
+{
+	(void)cpu;
+	return 0;
+}
+
+static void sched_unisolate_cpu(int cpu)
+{
+	(void)cpu;
+}
+
+static void sched_unisolate_cpu_unlocked(int cpu)
+{
+	(void)cpu;
+}
+
 struct cpu_isolate_cdev {
 	struct list_head node;
 	int cpu_id;
