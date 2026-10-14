@@ -140,13 +140,6 @@
 #include <linux/file.h>
 #include <linux/poll.h>
 #include <linux/psi.h>
-
-#ifdef CONFIG_TRACEPOINTS
-#ifdef CONFIG_PSI_FTRACE
-#define CREATE_TRACE_POINTS
-#include <trace/events/psi.h>
-#endif /* CONFIG_PSI_FTRACE */
-#endif /* CONFIG_TRACEPOINTS */
 #include "sched.h"
 
 #ifdef CONFIG_TRACEPOINTS
@@ -598,7 +591,7 @@ static u64 update_triggers(struct psi_group *group, u64 now)
 
 #ifdef CONFIG_TRACEPOINTS
 #ifdef CONFIG_PSI_FTRACE
-		trace_psi_event(t->state, t->threshold);
+		trace_psi_event(t, growth);
 #endif /* CONFIG_PSI_FTRACE */
 #endif /* CONFIG_TRACEPOINTS */
 

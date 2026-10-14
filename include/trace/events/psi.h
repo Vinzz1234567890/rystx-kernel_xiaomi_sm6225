@@ -57,9 +57,9 @@ TRACE_EVENT(psi_meminfo,
 
 TRACE_EVENT(psi_event,
 
-	TP_PROTO(enum psi_states state, u64 threshold),
+	TP_PROTO(struct psi_trigger *t, u64 growth),
 
-	TP_ARGS(state, threshold),
+	TP_ARGS(t, growth),
 
 	TP_STRUCT__entry(
 		__field(enum psi_states, state)
