@@ -393,7 +393,6 @@ void print_cfs_rq(struct seq_file *m, int cpu, struct cfs_rq *cfs_rq)
 	last = __pick_last_entity(cfs_rq);
 	if (last)
 		right_vruntime = last->vruntime;
-	min_vruntime = cfs_rq->min_vruntime;
 	raw_spin_unlock_irqrestore(&rq->lock, flags);
 	sum_w_vruntime = cfs_rq->sum_w_vruntime;
 	avruntime = avg_vruntime(cfs_rq);
@@ -835,7 +834,7 @@ void proc_sched_show_task(struct task_struct *p, struct pid_namespace *ns,
 	P(se.avg.util_avg);
 	P(se.avg.last_update_time);
 	P(se.avg.util_est.ewma);
-	PM(se.avg.util_est.enqueued, ~UTIL_AVG_UNCHANGED);
+	P(se.avg.util_est.enqueued);
 #endif
 	P(policy);
 	P(prio);
