@@ -3024,6 +3024,10 @@ static inline bool task_rtg_high_prio(struct task_struct *p)
 	return false;
 }
 
+static inline u64 sched_irqload(int cpu) { return 0; }
+static inline int sched_cpu_high_irqload(int cpu) { return 0; }
+static inline unsigned int walt_nr_rtg_high_prio(int cpu) { return 0; }
+
 static inline u32 task_load(struct task_struct *p) { return 0; }
 static inline u32 task_pl(struct task_struct *p) { return 0; }
 
