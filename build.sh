@@ -4,10 +4,11 @@
 # Copyright (C) 2020-2021 Adithya R.
 
 SECONDS=0 # builtin bash timer
-ZIPNAME="vauxite-$(date '+%Y%m%d-%H%M')-spes.zip"
+ZIPNAME="rystX-fog-$(date '+%Y%m%d-%H%M').zip"
 TC_DIR="$(pwd)/tc/clang-r450784e"
 AK3_DIR="$(pwd)/android/AnyKernel3"
-DEFCONFIG="vendor/spes-perf_defconfig"
+DEFCONFIG="stock_defconfig"
+FRAGMENTS="arch/arm64/configs/vendor/ksu.config"
 
 if test -z "$(git rev-parse --show-cdup 2>/dev/null)" &&
    head=$(git rev-parse --verify HEAD 2>/dev/null); then
@@ -46,26 +47,32 @@ fi
 
 mkdir -p out
 make O=out ARCH=arm64 $DEFCONFIG
+printf 'CONFIG_LITTLE_CPU_MASK=15\nCONFIG_BIG_CPU_MASK=240\n' > out/masks.config
+./scripts/kconfig/merge_config.sh -m -O out out/.config $FRAGMENTS out/masks.config
+make O=out ARCH=arm64 olddefconfig
+yes "" | make O=out ARCH=arm64 syncconfig > /dev/null
+grep -q '^CONFIG_KSU=y' out/.config || { echo "FATAL: CONFIG_KSU not set after merge"; exit 1; }
+grep -q '^CONFIG_TOUCHSCREEN_NT36xxx_HOSTDL_SPI=y' out/.config || { echo "FATAL: NT36xxx SPI driver not enabled"; exit 1; }
+grep -q '^CONFIG_LITTLE_CPU_MASK=15' out/.config || { echo "FATAL: LITTLE_CPU_MASK missing"; exit 1; }
 
 echo -e "\nStarting compilation...\n"
-make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 Image.gz dtb.img dtbo.img 2> >(tee log.txt >&2) || exit $?
+make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 Image.gz 2> >(tee log.txt >&2) || exit $?
 
 kernel="out/arch/arm64/boot/Image.gz"
-dtb="out/arch/arm64/boot/dtb.img"
-dtbo="out/arch/arm64/boot/dtbo.img"
 
 if [ -f "$kernel" ]; then
 	echo -e "\nKernel compiled succesfully! Zipping up...\n"
-	if [ -d "$AK3_DIR" ]; then
-		cp -r $AK3_DIR AnyKernel3
-	elif ! git clone -q https://github.com/CHRISL7/AnyKernel3 -b master; then
+	if ! git clone -q https://github.com/CHRISL7/AnyKernel3 -b master AnyKernel3; then
 		echo -e "\nAnyKernel3 repo not found locally and couldn't clone from GitHub! Aborting..."
 		exit 1
 	fi
-	cp $kernel $dtb $dtbo AnyKernel3
+	if [ -f "$AK3_DIR/anykernel.sh" ]; then
+		cp "$AK3_DIR/anykernel.sh" AnyKernel3/anykernel.sh
+	fi
+	cp $kernel AnyKernel3
+	cp out/.config AnyKernel3/kernel.config
 	rm -rf out/arch/arm64/boot
 	cd AnyKernel3
-	git checkout master &> /dev/null
 	zip -r9 "../$ZIPNAME" * -x .git README.md *placeholder
 	cd ..
 	rm -rf AnyKernel3

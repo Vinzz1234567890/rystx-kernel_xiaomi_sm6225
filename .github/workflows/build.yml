@@ -1,0 +1,29 @@
+name: Build fog kernel
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev zip
+
+      - name: Build kernel
+        run: bash ./build.sh
+
+      - name: Upload AnyKernel3 zip
+        uses: actions/upload-artifact@v7
+        with:
+          name: fog-kernel
+          path: rystX-fog-*.zip
+          if-no-files-found: error

@@ -1358,6 +1358,10 @@ static int32_t nvt_ts_point_data_checksum(uint8_t *buf, uint8_t length)
 #endif /* POINT_DATA_CHECKSUM */
 
 #define POINT_DATA_LEN 65
+/* Software bottom-edge filter: toggled via /sys/module/nt36xxx/parameters/edge_filter */
+static bool nvt_edge_filter_en = true;
+module_param_named(edge_filter, nvt_edge_filter_en, bool, 0644);
+#define NVT_EDGE_FILTER_PX 30
 /*******************************************************
 Description:
 	Novatek touchscreen work function.
@@ -1380,6 +1384,7 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 #endif /* MT_PROTOCOL_B */
 	int32_t i = 0;
 	int32_t finger_cnt = 0;
+	int32_t edge_outside_cnt = 0;
 	uint8_t pen_format_id = 0;
 	uint32_t pen_x = 0;
 	uint32_t pen_y = 0;
@@ -1463,6 +1468,24 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 
 	finger_cnt = 0;
 
+	/* count active fingers outside the bottom edge strip */
+	edge_outside_cnt = 0;
+	if (nvt_edge_filter_en) {
+		for (i = 0; i < ts->max_touch_num; i++) {
+			position = 1 + 6 * i;
+			if (((point_data[position] & 0x07) != 0x01) &&
+					((point_data[position] & 0x07) != 0x02))
+				continue;
+			input_id = (uint8_t)(point_data[position + 0] >> 3);
+			if ((input_id == 0) || (input_id > ts->max_touch_num))
+				continue;
+			input_y = (uint32_t)(point_data[position + 2] << 4) +
+					(uint32_t)(point_data[position + 3] & 0x0F);
+			if (input_y + NVT_EDGE_FILTER_PX <= ts->abs_y_max)
+				edge_outside_cnt++;
+		}
+	}
+
 	for (i = 0; i < ts->max_touch_num; i++) {
 		position = 1 + 6 * i;
 		input_id = (uint8_t)(point_data[position + 0] >> 3);
@@ -1479,6 +1502,10 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 			if ((input_x < 0) || (input_y < 0))
 				continue;
 			if ((input_x > ts->abs_x_max) || (input_y > ts->abs_y_max))
+				continue;
+			/* drop bottom-edge point only while other fingers are active (bezel ghost) */
+			if (nvt_edge_filter_en && edge_outside_cnt > 0 &&
+					input_y + NVT_EDGE_FILTER_PX > ts->abs_y_max)
 				continue;
 			input_w = (uint32_t)(point_data[position + 4]);
 			if (input_w == 0)
