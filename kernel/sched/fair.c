@@ -68,6 +68,7 @@ enum sched_tunable_scaling sysctl_sched_tunable_scaling = SCHED_TUNABLESCALING_N
  */
 unsigned int sysctl_sched_base_slice			= 700000ULL;
 static unsigned int normalized_sysctl_sched_base_slice	= 700000ULL;
+unsigned int sysctl_sched_min_granularity		= 700000ULL;
 
 const_debug unsigned int sysctl_sched_migration_cost	= 500000UL;
 DEFINE_PER_CPU_READ_MOSTLY(int, sched_load_boost);
@@ -8502,7 +8503,6 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu,
 	bool need_idle = wake_to_idle(p);
 	int placement_boost = task_boost_policy(p);
 	u64 start_t = 0;
-	int delta = 0;
 	int task_boost = per_task_boost(p);
 	int boosted = (uclamp_boosted(p) > 0) || (task_boost > 0);
 	bool prefer_high_cap = boosted;
@@ -8597,7 +8597,7 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu,
 	}
 
 	if (task_placement_boost_enabled(p) || fbt_env.need_idle ||
-	    prefer_high_cap || is_rtg || __cpu_overutilized(prev_cpu, delta) ||
+	    prefer_high_cap || is_rtg || cpu_overutilized(prev_cpu) ||
             !task_fits_max(p, prev_cpu)) {
 		best_energy_cpu = cpu;
 		goto unlock;
