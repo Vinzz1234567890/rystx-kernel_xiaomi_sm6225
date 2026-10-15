@@ -30,7 +30,7 @@ patch_vbmeta_flag=auto;
 
 . tools/ak3-core.sh;
 
-dump_boot;
+split_boot;
 
-write_boot;
+flash_boot;
 ## end boot install
