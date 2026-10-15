@@ -8,7 +8,7 @@ ZIPNAME="rystX-fog-$(date '+%Y%m%d-%H%M').zip"
 TC_DIR="$(pwd)/tc/clang-r450784e"
 AK3_DIR="$(pwd)/android/AnyKernel3"
 DEFCONFIG="stock_defconfig"
-FRAGMENTS="arch/arm64/configs/vendor/ksu.config"
+FRAGMENTS=""
 
 if test -z "$(git rev-parse --show-cdup 2>/dev/null)" &&
    head=$(git rev-parse --verify HEAD 2>/dev/null); then
@@ -51,7 +51,6 @@ printf 'CONFIG_LITTLE_CPU_MASK=15\nCONFIG_BIG_CPU_MASK=240\nCONFIG_ANDROID_VENDO
 ./scripts/kconfig/merge_config.sh -m -O out out/.config $FRAGMENTS out/masks.config
 make O=out ARCH=arm64 olddefconfig
 yes "" | make O=out ARCH=arm64 syncconfig > /dev/null
-grep -q '^CONFIG_KSU=y' out/.config || { echo "FATAL: CONFIG_KSU not set after merge"; exit 1; }
 grep -q '^CONFIG_TOUCHSCREEN_NT36xxx_HOSTDL_SPI=y' out/.config || { echo "FATAL: NT36xxx SPI driver not enabled"; exit 1; }
 grep -q '^CONFIG_LITTLE_CPU_MASK=15' out/.config || { echo "FATAL: LITTLE_CPU_MASK missing"; exit 1; }
 grep -q '^CONFIG_ANDROID_VENDOR_HOOKS=y' out/.config || { echo "FATAL: VENDOR_HOOKS missing"; exit 1; }
