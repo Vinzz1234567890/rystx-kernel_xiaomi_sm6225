@@ -13,20 +13,22 @@ do.cleanuponabort=0
 device.name1=fog
 device.name2=rain
 device.name3=wind
+supported.versions=
+supported.patchlevels=
 '; } # end properties
 
 ### AnyKernel install
 boot_attributes() {
-set_perm_recursive 0 0 755 644 $RAMDISK/*;
-set_perm_recursive 0 0 750 750 $RAMDISK/init* $RAMDISK/sbin;
+set_perm_recursive 0 0 755 644 $ramdisk/*;
+set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 } # end attributes
 
-BLOCK=boot;
-IS_SLOT_DEVICE=1;
-RAMDISK_COMPRESSION=auto;
-PATCH_VBMETA_FLAG=auto;
+block=boot;
+is_slot_device=auto;
+ramdisk_compression=auto;
+patch_vbmeta_flag=auto;
 
-. tools/ak3-core.sh && attributes;
+. tools/ak3-core.sh;
 
 dump_boot;
 
